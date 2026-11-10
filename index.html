@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chọn ảnh bao bì mới</title>
+<meta name="description" content="Chọn 1 ảnh bao bì mới nhất, nhân viên sẽ gửi ảnh cho bạn.">
+<meta name="theme-color" content="#0b2a5b">
+<style>
+  :root { --navy: #0b2a5b; --vang: #e8a317; --nen: #f3f6fb; --chu: #0f2447; --mo: #5b6b85; --vien: #dbe3ef; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--nen); color: var(--chu); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { background: var(--navy); color: #fff; padding: 22px 16px 18px; }
+  header h1 { margin: 0 0 4px; font-size: 21px; }
+  header p { margin: 0; opacity: .85; font-size: 14px; }
+  main { max-width: 960px; margin: 0 auto; padding: 14px 12px 40px; }
+  .trangthai { color: var(--mo); font-size: 14px; margin: 4px 4px 12px; }
+  .luoi { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .the { background: #fff; border: 1px solid var(--vien); border-radius: 12px; overflow: hidden; padding: 0; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+  .the:focus-visible { outline: 3px solid var(--vang); }
+  .the img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: #e9eef6; }
+  .the span { display: block; padding: 8px 10px; font-size: 14px; font-weight: 600; }
+  dialog { border: 0; border-radius: 16px; padding: 0; width: min(520px, 94vw); max-height: 94vh; }
+  dialog::backdrop { background: rgba(11, 42, 91, .55); }
+  .hop { padding: 16px; }
+  .hop img { display: block; width: 100%; max-height: 55vh; object-fit: contain; background: #e9eef6; border-radius: 10px; }
+  .hop h2 { font-size: 18px; margin: 12px 0 8px; }
+  label { display: block; font-size: 14px; font-weight: 600; margin: 10px 0 4px; }
+  input { width: 100%; padding: 12px; font: inherit; border: 1px solid var(--vien); border-radius: 10px; }
+  input:focus { outline: 2px solid var(--navy); border-color: transparent; }
+  .nut { display: block; width: 100%; padding: 13px; margin-top: 12px; border: 0; border-radius: 10px; font: inherit; font-weight: 700; cursor: pointer; }
+  .chinh { background: var(--vang); color: #241600; }
+  .phu { background: #e9eef6; color: var(--navy); }
+  .nut:disabled { opacity: .6; cursor: wait; }
+  .loi { color: #b42318; font-size: 14px; margin: 8px 0 0; min-height: 1em; }
+  .ghichu { color: var(--mo); font-size: 13px; margin: 8px 0 0; }
+  .xong { background: #fff; border: 1px solid var(--vien); border-radius: 14px; padding: 22px 16px; text-align: center; }
+  .xong img { width: 200px; max-width: 70%; border-radius: 10px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Chọn ảnh bao bì mới</h1>
+  <p>Mỗi người chọn 1 ảnh. Ảnh đã có người chọn sẽ không còn hiện cho người khác.</p>
+</header>
+<main>
+  <div id="xong" class="xong" hidden></div>
+  <div id="khuChon">
+    <p id="trangThai" class="trangthai">Đang tải ảnh…</p>
+    <div id="luoi" class="luoi"></div>
+  </div>
+</main>
+
+<dialog id="hop">
+  <div class="hop">
+    <img id="hopAnh" alt="">
+    <h2 id="hopTen"></h2>
+    <form id="form" novalidate>
+      <label for="ten">Họ tên</label>
+      <input id="ten" autocomplete="name" maxlength="60" required>
+      <label for="sdt">Số điện thoại (để nhân viên gửi ảnh)</label>
+      <input id="sdt" type="tel" inputmode="tel" autocomplete="tel" maxlength="15" required>
+      <p id="loi" class="loi" role="alert"></p>
+      <button id="nutXacNhan" class="nut chinh" type="submit">Xác nhận chọn ảnh này</button>
+      <button class="nut phu" type="button" onclick="hop.close()">Xem ảnh khác</button>
+      <p class="ghichu">Bấm xác nhận là ảnh được giữ cho bạn. Mỗi số điện thoại chỉ chọn được 1 ảnh.</p>
+    </form>
+  </div>
+</dialog>
+
+<script>
+// SUA: link .../exec của Apps Script. Chạy trên máy (localhost) thì tự dùng máy chủ thử.
+var API = 'https://script.google.com/macros/s/AKfycbxqCfqMUHu_BI2xMPiW46-1YBoY7ga8oHRkWrw3cVSthPPM9OMq_cCzYvCghejLpfnLrA/exec';
+if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) API = location.origin + '/exec';
+
+var $ = function (id) { return document.getElementById(id); };
+var hop = $('hop'), DS = [], DANG = null;
+
+function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
+
+function ve(ds) {
+  DS = ds;
+  $('trangThai').textContent = ds.length ? 'Còn ' + ds.length + ' ảnh. Bấm vào ảnh để xem lớn và chọn.' : 'Hiện chưa còn ảnh nào để chọn. Bạn quay lại sau nhé.';
+  $('luoi').innerHTML = ds.map(function (a, i) {
+    return '<button class="the" type="button" onclick="mo(' + i + ')"><img loading="lazy" src="' + esc(a.url) + '" alt="' + esc(a.ten) + '"><span>' + esc(a.ten) + '</span></button>';
+  }).join('');
+  if (DANG && !ds.some(function (a) { return a.id === DANG.id; }) && hop.open) {
+    hop.close();
+    alert('Ảnh "' + DANG.ten + '" vừa có người chọn trước. Bạn chọn ảnh khác nhé.');
+  }
+}
+
+function tai() {
+  return fetch(API).then(function (r) { return r.json(); }).then(function (kq) {
+    if (kq.ok) ve(kq.anh);
+  }).catch(function () {
+    if (!DS.length) $('trangThai').textContent = 'Không tải được ảnh. Kiểm tra mạng rồi tải lại trang.';
+  });
+}
+
+function mo(i) {
+  DANG = DS[i];
+  $('hopAnh').src = DANG.url; $('hopAnh').alt = DANG.ten;
+  $('hopTen').textContent = DANG.ten;
+  $('loi').textContent = '';
+  hop.showModal();
+}
+
+function daXong(ten, sdt) {
+  $('khuChon').hidden = true;
+  $('xong').hidden = false;
+  $('xong').innerHTML = '<h2>Đã giữ ảnh "' + esc(ten) + '" cho bạn</h2><p>Nhân viên sẽ gửi ảnh qua số <b>' + esc(sdt) + '</b>.</p>';
+}
+
+$('form').onsubmit = function (e) {
+  e.preventDefault();
+  var ten = $('ten').value.trim(), sdt = $('sdt').value.trim(), nut = $('nutXacNhan');
+  if (ten.length < 2) { $('loi').textContent = 'Vui lòng nhập họ tên.'; return; }
+  if (sdt.replace(/\D/g, '').length < 9) { $('loi').textContent = 'Vui lòng nhập số điện thoại.'; return; }
+  nut.disabled = true; nut.textContent = 'Đang gửi…'; $('loi').textContent = '';
+  // text/plain để trình duyệt không hỏi trước (CORS), Apps Script vẫn đọc được.
+  fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ id: DANG.id, ten: ten, sdt: sdt }) })
+    .then(function (r) { return r.json(); })
+    .then(function (kq) {
+      if (kq.ok) {
+        localStorage.setItem('daChon', JSON.stringify({ ten: kq.ten, sdt: sdt }));
+        hop.close(); daXong(kq.ten, sdt); return;
+      }
+      $('loi').textContent = kq.loi || 'Chưa gửi được, thử lại nhé.';
+      if (kq.het) { DANG = null; hop.close(); ve(kq.anh || DS); alert(kq.loi); }
+    })
+    .catch(function () { $('loi').textContent = 'Mất kết nối, bấm xác nhận lại nhé.'; })
+    .then(function () { nut.disabled = false; nut.textContent = 'Xác nhận chọn ảnh này'; });
+};
+
+var cu = JSON.parse(localStorage.getItem('daChon') || 'null');
+if (cu) daXong(cu.ten, cu.sdt);
+else if (/DAN_LINK/.test(API)) $('trangThai').textContent = 'Trang chưa được nối với thư viện ảnh.';
+else { tai(); setInterval(function () { if (!document.hidden) tai(); }, 20000); }
+</script>
+</body>
+</html>
