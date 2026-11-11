@@ -37,6 +37,63 @@
   .xong { background: #fff; border: 1px solid var(--vien); border-radius: 14px; padding: 22px 16px; text-align: center; }
   .xong img { width: 200px; max-width: 70%; border-radius: 10px; }
   [hidden] { display: none !important; }
+
+  /* ===== Hiệu ứng động ===== */
+  header { position: relative; overflow: hidden; background: linear-gradient(120deg, #0b2a5b, #1a4a8f, #0b2a5b); background-size: 200% 100%; animation: troi 9s ease-in-out infinite; }
+  header::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.16) 50%, transparent 60%); transform: translateX(-100%); animation: loe 5s ease-in-out 1s infinite; pointer-events: none; }
+  header h1 { animation: len .6s ease-out both; }
+  header p { animation: len .6s ease-out .12s both; }
+  @keyframes troi { 50% { background-position: 100% 0; } }
+  @keyframes loe { 55%, 100% { transform: translateX(100%); } }
+  @keyframes len { from { opacity: 0; transform: translateY(14px); } }
+  .dem { display: inline-block; font-weight: 700; color: var(--navy); }
+  .dem.nhay { animation: nay .5s; }
+  @keyframes nay { 40% { transform: scale(1.4); color: var(--vang); } }
+
+  .the { box-shadow: 0 1px 2px rgba(11,42,91,.06); transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s; }
+  .luoi.dau .the { animation: len .5s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i) * 55ms); }
+  .the .khung { display: block; overflow: hidden; padding: 0; }
+  .the img { opacity: 0; transition: transform .5s ease, opacity .5s; }
+  .the img.co { opacity: 1; }
+  @media (hover: hover) {
+    .the:hover { transform: translateY(-4px); box-shadow: 0 14px 26px rgba(11,42,91,.18); }
+    .the:hover img { transform: scale(1.07); }
+  }
+  .the:active { transform: scale(.96); }
+  .the.mat { animation: mat .5s ease-in forwards; pointer-events: none; }
+  @keyframes mat { to { opacity: 0; transform: scale(.6) rotate(-5deg); filter: blur(4px); } }
+  .sk { aspect-ratio: 1 / 1.2; border-radius: 12px; background: linear-gradient(90deg, #e3e9f3 25%, #f5f8fc 50%, #e3e9f3 75%); background-size: 200% 100%; animation: sk 1.2s linear infinite; }
+  @keyframes sk { to { background-position: -200% 0; } }
+
+  dialog[open] { animation: bat .38s cubic-bezier(.2,1.25,.3,1); }
+  dialog[open]::backdrop { animation: hien .3s ease; backdrop-filter: blur(4px); }
+  @keyframes bat { from { opacity: 0; transform: translateY(40px) scale(.94); } }
+  @keyframes hien { from { opacity: 0; } }
+  .hop img { animation: hien .5s ease; }
+  input { transition: box-shadow .2s, border-color .2s; }
+  input:focus { box-shadow: 0 0 0 4px rgba(11,42,91,.12); }
+  .nut { transition: transform .15s, filter .2s; }
+  .nut:active { transform: scale(.97); }
+  .chinh { background: linear-gradient(90deg, #e8a317, #f7c94f, #e8a317); background-size: 200% 100%; animation: troi 3s ease-in-out infinite; box-shadow: 0 6px 16px rgba(232,163,23,.35); }
+  .chinh:disabled { animation: troi .8s linear infinite; }
+  .loi:not(:empty) { animation: rung .35s; }
+  @keyframes rung { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+  .xong { position: relative; overflow: hidden; animation: bat .55s cubic-bezier(.2,1.25,.3,1) both; }
+  .xong h2 { animation: len .5s ease-out .5s both; }
+  .xong p { animation: len .5s ease-out .65s both; }
+  .xong img { margin-top: 10px; animation: len .6s ease-out .8s both; }
+  .tick { width: 76px; height: 76px; display: block; margin: 0 auto 4px; }
+  .tick circle { stroke-dasharray: 190; stroke-dashoffset: 190; animation: veNet .6s ease-out .1s forwards; }
+  .tick path { stroke-dasharray: 50; stroke-dashoffset: 50; animation: veNet .35s ease-out .6s forwards; }
+  @keyframes veNet { to { stroke-dashoffset: 0; } }
+  .hoa { position: absolute; top: -12px; width: 8px; height: 13px; border-radius: 2px; animation: roi 2s ease-in var(--d) forwards; }
+  @keyframes roi { to { transform: translate(var(--x), 420px) rotate(600deg); opacity: 0; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .the img { opacity: 1; }
+  }
 </style>
 </head>
 <body>
@@ -48,7 +105,7 @@
   <div id="xong" class="xong" hidden></div>
   <div id="khuChon">
     <p id="trangThai" class="trangthai">Đang tải ảnh…</p>
-    <div id="luoi" class="luoi"></div>
+    <div id="luoi" class="luoi"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
   </div>
 </main>
 
@@ -79,12 +136,26 @@ var hop = $('hop'), DS = [], DANG = null;
 
 function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
 
+var LAN_DAU = true, CHO_VE = 0;
+
+// Ảnh vừa bị người khác chọn: cho thẻ đó mờ dần rồi mới vẽ lại lưới.
 function ve(ds) {
+  var con = {}; ds.forEach(function (a) { con[a.id] = 1; });
+  var mat = LAN_DAU ? [] : DS.filter(function (a) { return !con[a.id]; });
+  mat.forEach(function (a) { var el = document.querySelector('.the[data-id="' + a.id + '"]'); if (el) el.classList.add('mat'); });
+  clearTimeout(CHO_VE);
+  CHO_VE = setTimeout(function () { veNgay(ds); }, mat.length ? 480 : 0);
+}
+
+function veNgay(ds) {
+  var doiSo = DS.length !== ds.length && !LAN_DAU;
   DS = ds;
-  $('trangThai').textContent = ds.length ? 'Còn ' + ds.length + ' ảnh. Bấm vào ảnh để xem lớn và chọn.' : 'Hiện chưa còn ảnh nào để chọn. Bạn quay lại sau nhé.';
+  $('trangThai').innerHTML = ds.length ? 'Còn <span class="dem' + (doiSo ? ' nhay' : '') + '">' + ds.length + '</span> ảnh. Bấm vào ảnh để xem lớn và chọn.' : 'Hiện chưa còn ảnh nào để chọn. Bạn quay lại sau nhé.';
+  $('luoi').className = 'luoi' + (LAN_DAU ? ' dau' : '');
   $('luoi').innerHTML = ds.map(function (a, i) {
-    return '<button class="the" type="button" onclick="mo(' + i + ')"><img loading="lazy" src="' + esc(a.url) + '" alt="' + esc(a.ten) + '"><span>' + esc(a.ten) + '</span></button>';
+    return '<button class="the" type="button" data-id="' + esc(a.id) + '" style="--i:' + i + '" onclick="mo(' + i + ')"><span class="khung"><img loading="lazy" onload="this.classList.add(\'co\')" src="' + esc(a.url) + '" alt="' + esc(a.ten) + '"></span><span>' + esc(a.ten) + '</span></button>';
   }).join('');
+  LAN_DAU = false;
   if (DANG && !ds.some(function (a) { return a.id === DANG.id; }) && hop.open) {
     hop.close();
     alert('Ảnh "' + DANG.ten + '" vừa có người chọn trước. Bạn chọn ảnh khác nhé.');
@@ -107,10 +178,16 @@ function mo(i) {
   hop.showModal();
 }
 
-function daXong(ten, sdt) {
+function daXong(ten, sdt, url) {
   $('khuChon').hidden = true;
   $('xong').hidden = false;
-  $('xong').innerHTML = '<h2>Đã giữ ảnh "' + esc(ten) + '" cho bạn</h2><p>Nhân viên sẽ gửi ảnh qua số <b>' + esc(sdt) + '</b>.</p>';
+  var mau = ['#e8a317', '#0b2a5b', '#2bb673', '#e5484d', '#4c8dff', '#f7c94f'], hoa = '';
+  for (var i = 0; i < 28; i++) hoa += '<i class="hoa" style="left:' + (Math.random() * 100) + '%;background:' + mau[i % mau.length] + ';--x:' + Math.round(Math.random() * 120 - 60) + 'px;--d:' + (Math.random() * .5).toFixed(2) + 's"></i>';
+  $('xong').innerHTML = hoa +
+    '<svg class="tick" viewBox="0 0 66 66" fill="none" stroke="#2bb673" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><circle cx="33" cy="33" r="29"/><path d="M20 34l9 9 17-19"/></svg>' +
+    '<h2>Đã giữ ảnh "' + esc(ten) + '" cho bạn</h2><p>Nhân viên sẽ gửi ảnh qua số <b>' + esc(sdt) + '</b>.</p>' +
+    (url ? '<img src="' + esc(url) + '" alt="' + esc(ten) + '">' : '');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 $('form').onsubmit = function (e) {
@@ -125,7 +202,7 @@ $('form').onsubmit = function (e) {
     .then(function (kq) {
       if (kq.ok) {
         localStorage.setItem('daChon', JSON.stringify({ ten: kq.ten, sdt: sdt }));
-        hop.close(); daXong(kq.ten, sdt); return;
+        hop.close(); daXong(kq.ten, sdt, DANG.url); return;
       }
       $('loi').textContent = kq.loi || 'Chưa gửi được, thử lại nhé.';
       if (kq.het) { DANG = null; hop.close(); ve(kq.anh || DS); alert(kq.loi); }
