@@ -7,7 +7,7 @@
 <meta name="description" content="Chọn 1 ảnh bao bì mới nhất, nhân viên sẽ gửi ảnh cho bạn.">
 <meta name="theme-color" content="#0b2a5b">
 <style>
-  :root { --navy: #0b2a5b; --vang: #e8a317; --nen: #f3f6fb; --chu: #0f2447; --mo: #5b6b85; --vien: #dbe3ef; }
+  :root { color-scheme: light; --navy: #0b2a5b; --vang: #e8a317; --nen: #f3f6fb; --chu: #0f2447; --mo: #5b6b85; --vien: #dbe3ef; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--nen); color: var(--chu); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   header { background: var(--navy); color: #fff; padding: 22px 16px 18px; }
@@ -20,7 +20,7 @@
   .the:focus-visible { outline: 3px solid var(--vang); }
   .the canvas { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: #e9eef6; }
   .the span { display: block; padding: 8px 10px; font-size: 14px; font-weight: 600; }
-  dialog { border: 0; border-radius: 16px; padding: 0; width: min(520px, 94vw); max-height: 94vh; }
+  dialog { background: #fff; color: var(--chu); border: 0; border-radius: 16px; padding: 0; width: min(520px, 94vw); max-height: 94vh; }
   dialog::backdrop { background: rgba(11, 42, 91, .55); }
   .hop { padding: 16px; }
   .hop canvas { display: block; width: 100%; aspect-ratio: 2 / 3; max-height: 55vh; object-fit: contain; background: #e9eef6; border-radius: 10px; }
@@ -45,6 +45,11 @@
   .thongbao { background: #fff8e6; border: 1px solid #f3d27a; border-left: 5px solid var(--vang); border-radius: 12px; padding: 12px 14px; margin: 2px 0 14px; font-size: 14.5px; animation: len .6s ease-out .2s both; }
   .thongbao b.tieude { display: block; color: #7a4b00; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
   .thongbao p { margin: 0; }
+  .goiY { font-size: 13.5px; font-weight: 600; margin: 6px 0 0; min-height: 1.2em; }
+  .goiY.sai { color: #b42318; }
+  .goiY.dung { color: #1a7f45; }
+  input.sai { border-color: #d92d20; box-shadow: 0 0 0 3px rgba(217,45,32,.15); }
+  input.dung { border-color: #2bb673; }
 
   /* ===== Điện thoại ===== */
   html { -webkit-text-size-adjust: 100%; }
@@ -153,7 +158,8 @@
       <label for="ten">Họ tên</label>
       <input id="ten" autocomplete="name" maxlength="60" required>
       <label for="sdt">Số điện thoại <span class="zalo">có dùng Zalo</span></label>
-      <input id="sdt" type="tel" inputmode="tel" pattern="[0-9+ ]*" autocomplete="tel" maxlength="15" placeholder="VD: 0912 345 678" required>
+      <input id="sdt" type="tel" inputmode="tel" pattern="[0-9+ ]*" autocomplete="tel" maxlength="15" placeholder="VD: 0912 345 678" required aria-describedby="goiYSdt">
+      <p id="goiYSdt" class="goiY" aria-live="polite"></p>
       <p id="loi" class="loi" role="alert"></p>
       <button id="nutXacNhan" class="nut chinh" type="submit">Xác nhận chọn ảnh này</button>
       <button class="nut phu" type="button" onclick="hop.close()">Xem ảnh khác</button>
@@ -259,6 +265,7 @@ function mo(i) {
   layXem(id).then(function (d) { if (DANG && DANG.id === id) veXem(cv, d); }, function () {});
   $('hopTen').textContent = DANG.ten;
   $('loi').textContent = '';
+  if ($('sdt').value) kiemSdt(true); else { $('goiYSdt').textContent = ''; $('sdt').className = ''; }
   hop.showModal();
 }
 
@@ -275,11 +282,39 @@ function daXong(ten, sdt, id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// 0912345678 / +84 912 345 678 / 84912345678 → 0912345678; sai thì ''. Giống chuanSdt_ bên máy chủ.
+function chuanSdt(s) {
+  var d = String(s || '').replace(/\D/g, '');
+  if (d.indexOf('84') === 0 && d.length === 11) d = d.slice(2);
+  if (d.length === 9) d = '0' + d;
+  return /^0[35789]\d{8}$/.test(d) ? d : '';
+}
+function loiSdt(s) {
+  var d = String(s || '').replace(/\D/g, '');
+  if (!d) return 'Vui lòng nhập số điện thoại có dùng Zalo.';
+  if (chuanSdt(s)) return '';
+  if (d.length < 10) return 'Còn thiếu số: số điện thoại có 10 chữ số (VD 0912 345 678).';
+  if (d.length > 11) return 'Thừa số: số điện thoại chỉ có 10 chữ số.';
+  return 'Số chưa đúng: phải bắt đầu bằng 03, 05, 07, 08 hoặc 09.';
+}
+// Đang gõ: chỉ báo khi đã đủ dài mà vẫn sai; rời ô hoặc bấm xác nhận: báo luôn.
+function kiemSdt(ngay) {
+  var o = $('sdt'), g = $('goiYSdt'), d = o.value.replace(/\D/g, ''), loi = loiSdt(o.value);
+  var hien = ngay || d.length >= 10;
+  o.classList.toggle('sai', !!loi && hien); o.classList.toggle('dung', !loi);
+  o.setAttribute('aria-invalid', loi && hien ? 'true' : 'false');
+  g.className = 'goiY' + (loi ? (hien ? ' sai' : '') : ' dung');
+  g.textContent = loi ? (hien ? loi : '') : '✓ Số hợp lệ';
+  return !loi;
+}
+$('sdt').addEventListener('input', function () { kiemSdt(false); });
+$('sdt').addEventListener('blur', function () { if (this.value) kiemSdt(true); });
+
 $('form').onsubmit = function (e) {
   e.preventDefault();
   var ten = $('ten').value.trim(), sdt = $('sdt').value.trim(), nut = $('nutXacNhan');
   if (ten.length < 2) { $('loi').textContent = 'Vui lòng nhập họ tên.'; return; }
-  if (sdt.replace(/\D/g, '').length < 9) { $('loi').textContent = 'Vui lòng nhập số điện thoại có dùng Zalo.'; return; }
+  if (!kiemSdt(true)) { $('sdt').focus(); return; }
   nut.disabled = true; nut.textContent = 'Đang gửi…'; $('loi').textContent = '';
   // text/plain để trình duyệt không hỏi trước (CORS), Apps Script vẫn đọc được.
   fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ id: DANG.id, ten: ten, sdt: sdt }) })
