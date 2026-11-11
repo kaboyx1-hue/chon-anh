@@ -18,12 +18,12 @@
   .luoi { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
   .the { background: #fff; border: 1px solid var(--vien); border-radius: 12px; overflow: hidden; padding: 0; text-align: left; cursor: pointer; font: inherit; color: inherit; }
   .the:focus-visible { outline: 3px solid var(--vang); }
-  .the img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: #e9eef6; }
+  .the canvas { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: #e9eef6; }
   .the span { display: block; padding: 8px 10px; font-size: 14px; font-weight: 600; }
   dialog { border: 0; border-radius: 16px; padding: 0; width: min(520px, 94vw); max-height: 94vh; }
   dialog::backdrop { background: rgba(11, 42, 91, .55); }
   .hop { padding: 16px; }
-  .hop img { display: block; width: 100%; max-height: 55vh; object-fit: contain; background: #e9eef6; border-radius: 10px; }
+  .hop canvas { display: block; width: 100%; aspect-ratio: 2 / 3; max-height: 55vh; object-fit: contain; background: #e9eef6; border-radius: 10px; }
   .hop h2 { font-size: 18px; margin: 12px 0 8px; }
   label { display: block; font-size: 14px; font-weight: 600; margin: 10px 0 4px; }
   input { width: 100%; padding: 12px; font: inherit; border: 1px solid var(--vien); border-radius: 10px; }
@@ -35,8 +35,13 @@
   .loi { color: #b42318; font-size: 14px; margin: 8px 0 0; min-height: 1em; }
   .ghichu { color: var(--mo); font-size: 13px; margin: 8px 0 0; }
   .xong { background: #fff; border: 1px solid var(--vien); border-radius: 14px; padding: 22px 16px; text-align: center; }
-  .xong img { width: 200px; max-width: 70%; border-radius: 10px; }
+  .xong canvas { display: block; width: 200px; max-width: 70%; margin: 0 auto; border-radius: 10px; }
   [hidden] { display: none !important; }
+  /* Ảnh chỉ để xem: không chạm giữ để lưu, không kéo, không bôi chọn */
+  canvas { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; pointer-events: none; }
+  .the, .hop h2, header { -webkit-user-select: none; user-select: none; }
+  .chao { margin: 8px 0 0; font-size: 13px; opacity: .75; }
+  .zalo { color: #0068ff; font-weight: 700; }
 
   /* ===== Điện thoại ===== */
   html { -webkit-text-size-adjust: 100%; }
@@ -55,7 +60,7 @@
     dialog[open] { animation: truotLen .38s cubic-bezier(.2,1,.3,1); }
     .hop { padding: 14px 14px max(16px, env(safe-area-inset-bottom)); }
     .hop::before { content: ""; display: block; width: 40px; height: 4px; margin: -4px auto 10px; border-radius: 2px; background: var(--vien); }
-    .hop img { max-height: 42dvh; }
+    .hop canvas { max-height: 42dvh; }
   }
   @keyframes truotLen { from { transform: translateY(100%); } }
   @media (max-width: 340px) { .the span { font-size: 13px; padding: 6px 8px; } }
@@ -75,11 +80,11 @@
   .the { box-shadow: 0 1px 2px rgba(11,42,91,.06); transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s; }
   .luoi.dau .the { animation: len .5s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i) * 55ms); }
   .the .khung { display: block; overflow: hidden; padding: 0; }
-  .the img { opacity: 0; transition: transform .5s ease, opacity .5s; }
-  .the img.co { opacity: 1; }
+  .the canvas { opacity: 0; transition: transform .5s ease, opacity .5s; }
+  .the canvas.co { opacity: 1; }
   @media (hover: hover) {
     .the:hover { transform: translateY(-4px); box-shadow: 0 14px 26px rgba(11,42,91,.18); }
-    .the:hover img { transform: scale(1.07); }
+    .the:hover canvas { transform: scale(1.07); }
   }
   .the:active { transform: scale(.96); }
   .the.mat { animation: mat .5s ease-in forwards; pointer-events: none; }
@@ -91,7 +96,7 @@
   dialog[open]::backdrop { animation: hien .3s ease; backdrop-filter: blur(4px); }
   @keyframes bat { from { opacity: 0; transform: translateY(40px) scale(.94); } }
   @keyframes hien { from { opacity: 0; } }
-  .hop img { animation: hien .5s ease; }
+  .hop canvas.co { animation: hien .5s ease; }
   input { transition: box-shadow .2s, border-color .2s; }
   input:focus { box-shadow: 0 0 0 4px rgba(11,42,91,.12); }
   .nut { transition: transform .15s, filter .2s; }
@@ -104,7 +109,7 @@
   .xong { position: relative; overflow: hidden; animation: bat .55s cubic-bezier(.2,1.25,.3,1) both; }
   .xong h2 { animation: len .5s ease-out .5s both; }
   .xong p { animation: len .5s ease-out .65s both; }
-  .xong img { margin-top: 10px; animation: len .6s ease-out .8s both; }
+  .xong canvas { margin-top: 10px; animation: len .6s ease-out .8s both; }
   .tick { width: 76px; height: 76px; display: block; margin: 0 auto 4px; }
   .tick circle { stroke-dasharray: 190; stroke-dashoffset: 190; animation: veNet .6s ease-out .1s forwards; }
   .tick path { stroke-dasharray: 50; stroke-dashoffset: 50; animation: veNet .35s ease-out .6s forwards; }
@@ -114,14 +119,15 @@
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
-    .the img { opacity: 1; }
+    .the canvas { opacity: 1; }
   }
 </style>
 </head>
 <body>
 <header>
-  <h1>Chọn ảnh bao bì mới</h1>
-  <p>Mỗi người chọn 1 ảnh. Ảnh đã có người chọn sẽ không còn hiện cho người khác.</p>
+  <h1>Xin chào, cảm ơn bạn đã ghé xem!</h1>
+  <p>Dưới đây là các mẫu bao bì mới nhất. Bạn chọn giúp 1 mẫu ưng ý nhất, để lại tên và số Zalo, nhân viên sẽ gửi bạn ảnh chất lượng cao.</p>
+  <p class="chao">Ảnh trên trang là bản xem trước có đóng dấu. Mẫu nào đã có người chọn sẽ không còn hiện.</p>
 </header>
 <main>
   <div id="xong" class="xong" hidden></div>
@@ -134,17 +140,17 @@
 <dialog id="hop">
   <div class="hop">
     <button class="dongHop" type="button" aria-label="Đóng" autofocus onclick="hop.close()">×</button>
-    <img id="hopAnh" alt="">
+    <canvas id="hopAnh" width="2" height="3" role="img"></canvas>
     <h2 id="hopTen"></h2>
     <form id="form" novalidate>
       <label for="ten">Họ tên</label>
       <input id="ten" autocomplete="name" maxlength="60" required>
-      <label for="sdt">Số điện thoại (để nhân viên gửi ảnh)</label>
+      <label for="sdt">Số điện thoại <span class="zalo">có dùng Zalo</span></label>
       <input id="sdt" type="tel" inputmode="tel" autocomplete="tel" maxlength="15" required>
       <p id="loi" class="loi" role="alert"></p>
       <button id="nutXacNhan" class="nut chinh" type="submit">Xác nhận chọn ảnh này</button>
       <button class="nut phu" type="button" onclick="hop.close()">Xem ảnh khác</button>
-      <p class="ghichu">Bấm xác nhận là ảnh được giữ cho bạn. Mỗi số điện thoại chỉ chọn được 1 ảnh.</p>
+      <p class="ghichu">Lưu ý: ảnh chất lượng cao được gửi qua <b>Zalo</b>, nên số điện thoại phải là số <b>đã đăng ký Zalo</b>, nếu không nhân viên sẽ không gửi được. Bấm xác nhận là ảnh được giữ cho bạn; mỗi số chỉ chọn được 1 ảnh.</p>
     </form>
   </div>
 </dialog>
@@ -163,8 +169,49 @@ function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return '&#
 
 var LAN_DAU = true, CHO_VE = 0;
 
+// Ảnh xem trước: máy chủ gửi về dạng dữ liệu (không có link tới ảnh gốc). Tải tối đa 4 ảnh cùng lúc.
+var XEM = {}, HANG = [], DANG_TAI = 0;
+function layXem(id) {
+  if (!XEM[id]) XEM[id] = new Promise(function (ok, loi) { HANG.push({ id: id, ok: ok, loi: loi }); chayHang(); });
+  return XEM[id];
+}
+function chayHang() {
+  while (DANG_TAI < 4 && HANG.length) (function (v) {
+    DANG_TAI++;
+    fetch(API + '?xem=' + encodeURIComponent(v.id)).then(function (r) { return r.json(); })
+      .then(function (kq) { if (kq.ok) v.ok(kq.data); else throw 0; })
+      .catch(function () { delete XEM[v.id]; v.loi(); })
+      .then(function () { DANG_TAI--; chayHang(); });
+  })(HANG.shift());
+}
+
+// Vẽ ảnh lên khung kèm dấu "BẢN XEM TRƯỚC" phủ chéo: lưu hay chụp lại cũng dính dấu.
+function veXem(cv, src) {
+  if (!cv) return;
+  var im = new Image();
+  im.onload = function () {
+    var w = cv.width = im.naturalWidth || 400, h = cv.height = im.naturalHeight || 400, c = cv.getContext('2d');
+    c.drawImage(im, 0, 0, w, h);
+    var co = Math.max(12, Math.round(Math.min(w, h) / 13)), chu = 'BẢN XEM TRƯỚC';
+    c.save(); c.translate(w / 2, h / 2); c.rotate(-Math.PI / 6);
+    c.font = '800 ' + co + 'px system-ui, -apple-system, Roboto, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.lineWidth = Math.max(1, co / 12); c.strokeStyle = 'rgba(11,42,91,.35)'; c.fillStyle = 'rgba(255,255,255,.42)';
+    for (var y = -h, hang = 0; y <= h; y += co * 2.8, hang++)
+      for (var x = -w * 1.2 + (hang % 2) * co * 4.5; x <= w * 1.2; x += co * 9) { c.strokeText(chu, x, y); c.fillText(chu, x, y); }
+    c.restore(); cv.classList.add('co');
+  };
+  im.src = src;
+}
+
+// Chặn chuột phải / kéo thả / bôi chọn (ô nhập vẫn dùng bình thường).
+['contextmenu', 'dragstart', 'selectstart'].forEach(function (t) {
+  document.addEventListener(t, function (e) { if (e.target.tagName !== 'INPUT') e.preventDefault(); });
+});
+
 // Ảnh vừa bị người khác chọn: cho thẻ đó mờ dần rồi mới vẽ lại lưới.
 function ve(ds) {
+  var ma = function (l) { return l.map(function (a) { return a.id; }).join(); };
+  if (!LAN_DAU && ma(ds) === ma(DS)) return;
   var con = {}; ds.forEach(function (a) { con[a.id] = 1; });
   var mat = LAN_DAU ? [] : DS.filter(function (a) { return !con[a.id]; });
   mat.forEach(function (a) { var el = document.querySelector('.the[data-id="' + a.id + '"]'); if (el) el.classList.add('mat'); });
@@ -178,8 +225,11 @@ function veNgay(ds) {
   $('trangThai').innerHTML = ds.length ? 'Còn <span class="dem' + (doiSo ? ' nhay' : '') + '">' + ds.length + '</span> ảnh. Bấm vào ảnh để xem lớn và chọn.' : 'Hiện chưa còn ảnh nào để chọn. Bạn quay lại sau nhé.';
   $('luoi').className = 'luoi' + (LAN_DAU ? ' dau' : '');
   $('luoi').innerHTML = ds.map(function (a, i) {
-    return '<button class="the" type="button" data-id="' + esc(a.id) + '" style="--i:' + i + '" onclick="mo(' + i + ')"><span class="khung"><img loading="lazy" onload="this.classList.add(\'co\')" src="' + esc(a.url) + '" alt="' + esc(a.ten) + '"></span><span>' + esc(a.ten) + '</span></button>';
+    return '<button class="the" type="button" data-id="' + esc(a.id) + '" style="--i:' + i + '" onclick="mo(' + i + ')"><span class="khung"><canvas width="1" height="1" role="img" aria-label="' + esc(a.ten) + '"></canvas></span><span>' + esc(a.ten) + '</span></button>';
   }).join('');
+  [].forEach.call($('luoi').querySelectorAll('.the'), function (el) {
+    layXem(el.dataset.id).then(function (d) { veXem(el.querySelector('canvas'), d); }, function () {});
+  });
   LAN_DAU = false;
   if (DANG && !ds.some(function (a) { return a.id === DANG.id; }) && hop.open) {
     hop.close();
@@ -197,21 +247,24 @@ function tai() {
 
 function mo(i) {
   DANG = DS[i];
-  $('hopAnh').src = DANG.lon || DANG.url; $('hopAnh').alt = DANG.ten;
+  var cv = $('hopAnh'), id = DANG.id;
+  cv.classList.remove('co'); cv.width = 2; cv.height = 3; cv.setAttribute('aria-label', DANG.ten);
+  layXem(id).then(function (d) { if (DANG && DANG.id === id) veXem(cv, d); }, function () {});
   $('hopTen').textContent = DANG.ten;
   $('loi').textContent = '';
   hop.showModal();
 }
 
-function daXong(ten, sdt, url) {
+function daXong(ten, sdt, id) {
   $('khuChon').hidden = true;
   $('xong').hidden = false;
   var mau = ['#e8a317', '#0b2a5b', '#2bb673', '#e5484d', '#4c8dff', '#f7c94f'], hoa = '';
   for (var i = 0; i < 28; i++) hoa += '<i class="hoa" style="left:' + (Math.random() * 100) + '%;background:' + mau[i % mau.length] + ';--x:' + Math.round(Math.random() * 120 - 60) + 'px;--d:' + (Math.random() * .5).toFixed(2) + 's"></i>';
   $('xong').innerHTML = hoa +
     '<svg class="tick" viewBox="0 0 66 66" fill="none" stroke="#2bb673" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><circle cx="33" cy="33" r="29"/><path d="M20 34l9 9 17-19"/></svg>' +
-    '<h2>Đã giữ ảnh "' + esc(ten) + '" cho bạn</h2><p>Nhân viên sẽ gửi ảnh qua số <b>' + esc(sdt) + '</b>.</p>' +
-    (url ? '<img src="' + esc(url) + '" alt="' + esc(ten) + '">' : '');
+    '<h2>Đã giữ ảnh "' + esc(ten) + '" cho bạn</h2><p>Nhân viên sẽ gửi ảnh chất lượng cao qua <span class="zalo">Zalo</span> tới số <b>' + esc(sdt) + '</b>.</p>' +
+    (id ? '<canvas width="1" height="1" role="img"></canvas>' : '');
+  if (id) layXem(id).then(function (d) { veXem($('xong').querySelector('canvas'), d); }, function () {});
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -219,7 +272,7 @@ $('form').onsubmit = function (e) {
   e.preventDefault();
   var ten = $('ten').value.trim(), sdt = $('sdt').value.trim(), nut = $('nutXacNhan');
   if (ten.length < 2) { $('loi').textContent = 'Vui lòng nhập họ tên.'; return; }
-  if (sdt.replace(/\D/g, '').length < 9) { $('loi').textContent = 'Vui lòng nhập số điện thoại.'; return; }
+  if (sdt.replace(/\D/g, '').length < 9) { $('loi').textContent = 'Vui lòng nhập số điện thoại có dùng Zalo.'; return; }
   nut.disabled = true; nut.textContent = 'Đang gửi…'; $('loi').textContent = '';
   // text/plain để trình duyệt không hỏi trước (CORS), Apps Script vẫn đọc được.
   fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ id: DANG.id, ten: ten, sdt: sdt }) })
@@ -227,7 +280,7 @@ $('form').onsubmit = function (e) {
     .then(function (kq) {
       if (kq.ok) {
         localStorage.setItem('daChon', JSON.stringify({ ten: kq.ten, sdt: sdt }));
-        hop.close(); daXong(kq.ten, sdt, DANG.url); return;
+        hop.close(); daXong(kq.ten, sdt, DANG.id); return;
       }
       $('loi').textContent = kq.loi || 'Chưa gửi được, thử lại nhé.';
       if (kq.het) { DANG = null; hop.close(); ve(kq.anh || DS); alert(kq.loi); }
