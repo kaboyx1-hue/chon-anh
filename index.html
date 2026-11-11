@@ -197,7 +197,7 @@ function tai() {
 
 function mo(i) {
   DANG = DS[i];
-  $('hopAnh').src = DANG.url; $('hopAnh').alt = DANG.ten;
+  $('hopAnh').src = DANG.lon || DANG.url; $('hopAnh').alt = DANG.ten;
   $('hopTen').textContent = DANG.ten;
   $('loi').textContent = '';
   hop.showModal();
