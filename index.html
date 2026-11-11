@@ -38,6 +38,28 @@
   .xong img { width: 200px; max-width: 70%; border-radius: 10px; }
   [hidden] { display: none !important; }
 
+  /* ===== Điện thoại ===== */
+  html { -webkit-text-size-adjust: 100%; }
+  button, .the { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  header { padding-top: max(22px, env(safe-area-inset-top)); padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+  main { padding-bottom: max(40px, env(safe-area-inset-bottom)); }
+  body:has(dialog[open]) { overflow: hidden; }
+  dialog { max-height: 94dvh; overflow-y: auto; overscroll-behavior: contain; }
+  .dongHop { position: sticky; top: 0; z-index: 1; float: right; width: 40px; height: 40px; margin: -6px -6px 0 0; border: 0; border-radius: 50%; background: rgba(255,255,255,.92); color: var(--navy); font-size: 22px; line-height: 1; cursor: pointer; box-shadow: 0 2px 8px rgba(11,42,91,.15); }
+  @media (max-width: 560px) {
+    .luoi { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    main { padding-left: 10px; padding-right: 10px; }
+    header h1 { font-size: 20px; }
+    /* Hộp chọn thành tấm trượt từ đáy màn hình lên */
+    dialog { width: 100%; max-width: 100%; margin: auto 0 0; border-radius: 18px 18px 0 0; max-height: 92dvh; }
+    dialog[open] { animation: truotLen .38s cubic-bezier(.2,1,.3,1); }
+    .hop { padding: 14px 14px max(16px, env(safe-area-inset-bottom)); }
+    .hop::before { content: ""; display: block; width: 40px; height: 4px; margin: -4px auto 10px; border-radius: 2px; background: var(--vien); }
+    .hop img { max-height: 42dvh; }
+  }
+  @keyframes truotLen { from { transform: translateY(100%); } }
+  @media (max-width: 340px) { .the span { font-size: 13px; padding: 6px 8px; } }
+
   /* ===== Hiệu ứng động ===== */
   header { position: relative; overflow: hidden; background: linear-gradient(120deg, #0b2a5b, #1a4a8f, #0b2a5b); background-size: 200% 100%; animation: troi 9s ease-in-out infinite; }
   header::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.16) 50%, transparent 60%); transform: translateX(-100%); animation: loe 5s ease-in-out 1s infinite; pointer-events: none; }
@@ -111,6 +133,7 @@
 
 <dialog id="hop">
   <div class="hop">
+    <button class="dongHop" type="button" aria-label="Đóng" autofocus onclick="hop.close()">×</button>
     <img id="hopAnh" alt="">
     <h2 id="hopTen"></h2>
     <form id="form" novalidate>
@@ -133,6 +156,8 @@ if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) API = location.origin 
 
 var $ = function (id) { return document.getElementById(id); };
 var hop = $('hop'), DS = [], DANG = null;
+// Chạm ra vùng tối ngoài hộp thì đóng hộp.
+hop.addEventListener('click', function (e) { if (e.target === hop) hop.close(); });
 
 function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); }
 
