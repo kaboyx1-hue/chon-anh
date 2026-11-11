@@ -48,6 +48,7 @@
   .goiY { font-size: 13.5px; font-weight: 600; margin: 6px 0 0; min-height: 1.2em; }
   .goiY.sai { color: #b42318; }
   .goiY.dung { color: #1a7f45; }
+  .goiY.thieu { color: var(--mo); }
   input.sai { border-color: #d92d20; box-shadow: 0 0 0 3px rgba(217,45,32,.15); }
   input.dung { border-color: #2bb673; }
   #sdt { font-size: 22px; letter-spacing: .05em; text-align: center; font-variant-numeric: tabular-nums; cursor: pointer; caret-color: transparent; }
@@ -169,6 +170,8 @@
     <form id="form" novalidate>
       <label for="ten">Họ tên</label>
       <input id="ten" autocomplete="name" maxlength="60" required>
+      <label for="shop">Tên shop</label>
+      <input id="shop" autocomplete="organization" maxlength="80" placeholder="VD: Shop Mèo Mập" required>
       <label for="sdt">Số điện thoại <span class="zalo">có dùng Zalo</span></label>
       <input id="sdt" type="tel" inputmode="none" readonly autocomplete="off" placeholder="Chạm để bấm số" required aria-describedby="goiYSdt">
       <p id="goiYSdt" class="goiY" aria-live="polite"></p>
@@ -316,8 +319,8 @@ function kiemSdt(ngay) {
   var hien = ngay || d.length >= 10;
   o.classList.toggle('sai', !!loi && hien); o.classList.toggle('dung', !loi);
   o.setAttribute('aria-invalid', loi && hien ? 'true' : 'false');
-  g.className = 'goiY' + (loi ? (hien ? ' sai' : '') : ' dung');
-  g.textContent = loi ? (hien ? loi : '') : '✓ Số hợp lệ';
+  g.className = 'goiY' + (loi ? (hien ? ' sai' : ' thieu') : ' dung');
+  g.textContent = loi ? (hien ? loi : (d.length ? 'Còn thiếu ' + (10 - d.length) + ' số' : '')) : '✓ Số hợp lệ';
   return !loi;
 }
 $('sdt').addEventListener('input', function () { kiemSdt(false); });
@@ -349,6 +352,7 @@ function dongPhim() { hop.querySelector('.hop').classList.remove('goSo'); if (!$
 $('sdt').addEventListener('click', moPhim);
 $('sdt').addEventListener('focus', moPhim);
 $('ten').addEventListener('focus', dongPhim);
+$('shop').addEventListener('focus', dongPhim);
 $('banPhim').addEventListener('pointerdown', function (e) { e.preventDefault(); }); // giữ nguyên chỗ, không nhảy trang
 $('banPhim').addEventListener('click', function (e) {
   var b = e.target.closest('button'); if (!b) return;
@@ -357,7 +361,7 @@ $('banPhim').addEventListener('click', function (e) {
 });
 // Máy tính: gõ số bằng bàn phím thật cũng được
 document.addEventListener('keydown', function (e) {
-  if (!hop.open || $('banPhim').hidden || document.activeElement === $('ten')) return;
+  if (!hop.open || $('banPhim').hidden || document.activeElement === $('ten') || document.activeElement === $('shop')) return;
   if (/^[0-9]$/.test(e.key)) { e.preventDefault(); bamPhim(e.key); }
   else if (e.key === 'Backspace') { e.preventDefault(); bamPhim('xoa'); }
   else if (e.key === 'Enter') { e.preventDefault(); dongPhim(); }
@@ -366,12 +370,13 @@ hop.addEventListener('close', function () { $('banPhim').hidden = true; hop.quer
 
 $('form').onsubmit = function (e) {
   e.preventDefault();
-  var ten = $('ten').value.trim(), sdt = $('sdt').value.trim(), nut = $('nutXacNhan');
-  if (ten.length < 2) { $('loi').textContent = 'Vui lòng nhập họ tên.'; return; }
+  var ten = $('ten').value.trim(), shop = $('shop').value.trim(), sdt = $('sdt').value.trim(), nut = $('nutXacNhan');
+  if (ten.length < 2) { $('loi').textContent = 'Vui lòng nhập họ tên.'; $('ten').focus(); return; }
+  if (shop.length < 2) { $('loi').textContent = 'Vui lòng nhập tên shop.'; $('shop').focus(); return; }
   if (!kiemSdt(true)) { $('sdt').focus(); return; }
   nut.disabled = true; nut.textContent = 'Đang gửi…'; $('loi').textContent = '';
   // text/plain để trình duyệt không hỏi trước (CORS), Apps Script vẫn đọc được.
-  fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ id: DANG.id, ten: ten, sdt: sdt }) })
+  fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ id: DANG.id, ten: ten, shop: shop, sdt: sdt }) })
     .then(function (r) { return r.json(); })
     .then(function (kq) {
       if (kq.ok) {
