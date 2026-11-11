@@ -42,6 +42,9 @@
   .the, .hop h2, header { -webkit-user-select: none; user-select: none; }
   .chao { margin: 8px 0 0; font-size: 13px; opacity: .75; }
   .zalo { color: #0068ff; font-weight: 700; }
+  .thongbao { background: #fff8e6; border: 1px solid #f3d27a; border-left: 5px solid var(--vang); border-radius: 12px; padding: 12px 14px; margin: 2px 0 14px; font-size: 14.5px; animation: len .6s ease-out .2s both; }
+  .thongbao b.tieude { display: block; color: #7a4b00; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
+  .thongbao p { margin: 0; }
 
   /* ===== Điện thoại ===== */
   html { -webkit-text-size-adjust: 100%; }
@@ -132,6 +135,10 @@
 <main>
   <div id="xong" class="xong" hidden></div>
   <div id="khuChon">
+    <div class="thongbao" role="note">
+      <b class="tieude">Thông báo chính thức</b>
+      <p>Sản phẩm đã chuyển sang <b>bao bì mới</b>. Hình bao bì cũ không còn khớp với hàng hiện tại, dùng tiếp sẽ dễ gây nhầm lẫn. Mong bạn chọn ảnh bao bì mới bên dưới để cập nhật.</p>
+    </div>
     <p id="trangThai" class="trangthai">Đang tải ảnh…</p>
     <div id="luoi" class="luoi"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
   </div>
@@ -146,7 +153,7 @@
       <label for="ten">Họ tên</label>
       <input id="ten" autocomplete="name" maxlength="60" required>
       <label for="sdt">Số điện thoại <span class="zalo">có dùng Zalo</span></label>
-      <input id="sdt" type="tel" inputmode="tel" autocomplete="tel" maxlength="15" required>
+      <input id="sdt" type="tel" inputmode="tel" pattern="[0-9+ ]*" autocomplete="tel" maxlength="15" placeholder="VD: 0912 345 678" required>
       <p id="loi" class="loi" role="alert"></p>
       <button id="nutXacNhan" class="nut chinh" type="submit">Xác nhận chọn ảnh này</button>
       <button class="nut phu" type="button" onclick="hop.close()">Xem ảnh khác</button>
